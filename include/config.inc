@@ -3,14 +3,19 @@ class Config {
     public static $debug = true;
     public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
     public static $empty = '';
-    public static $stringCount = 4;
+    public static $stringCount = 6;
     
     public static $modeNone = "";
     public static $modeHammer = "HAMMERON";
     public static $modeSlide = "SLIDE";
+    public static $modeBend = "BEND";
     public static $modeHammerChar = "^";
     public static $modeSlideCharUp = "/";
     public static $modeSlideCharDown = "\\";
+
+    public static function modeBendChar() {
+        return json_decode('"\u2518"');
+    }
 
     public static function keypressLeftArrow() {
         return chr(27) . chr(91) . chr(68);
@@ -30,6 +35,10 @@ class Config {
 
     public static function keypressEnter() {
         return chr(10);
+    }
+
+    public static function keypressBackspace() {
+        return chr(127);
     }
 
     public static function waitForInput() {

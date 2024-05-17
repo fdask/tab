@@ -12,6 +12,7 @@ class Keys {
     public $term;
     public $betweenSlots;
     public $mode;
+    public $tuning;
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -51,7 +52,7 @@ class Keys {
 
             switch ($c) {
                 case Config::keypressUpArrow():
-                    if ($this->selectedString < 3) {
+                    if ($this->selectedString < Config::$stringCount - 1) {
                         $this->selectedString++;
                         $redraw = true;
                     }
@@ -113,17 +114,21 @@ class Keys {
                 case '7':
                 case '8':
                 case '9':
+                case 'x':
                     $this->buffer .= $c;
 
                     $redraw = true;
 
                     break;
                 case 'b':
-                    print_r($this->betweenSlots);
+                    // bend mode
+                    $this->mode = ($this->mode == Config::$modeBend) ? Config::$modeNone : Config::$modeBend;
+
+                    $redraw = true;
 
                     break;
                 case 'h':
-                    // hammer on mode
+                    // hammer on mode (not usable on first slot)
                     if ($this->selectedSlot > 0) {
                         $this->mode = ($this->mode == Config::$modeHammer) ? Config::$modeNone : Config::$modeHammer;
                     
@@ -132,13 +137,26 @@ class Keys {
 
                     break;
                 case 'q':
+                    // quit
                     $this->gameOver();
 
                     break;
                 case 's':
+                    // slide mode (not usable on first slot)
                     if ($this->selectedSlot > 0) {
                         $this->mode = ($this->mode == Config::$modeSlide) ? Config::$modeNone : Config::$modeSlide;
 
+                        $redraw = true;
+                    }
+
+                    break;
+                case Config::keypressBackspace():
+                    // delete the last char from the buffer
+                    $count = strlen($this->buffer);
+
+                    if ($count >= 1) {
+                        $this->buffer = substr($this->buffer, 0, $count - 1);
+                        
                         $redraw = true;
                     }
 
@@ -197,15 +215,13 @@ class Keys {
 
         // add the modifier 
         if ($this->selectedSlot >= 1) {
-            echo "in the 1\n";
             if ($this->mode == Config::$modeHammer) {
-                echo "in the hammer mode\n";
                 $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$modeHammerChar;
-                echo "Adding hammer on!\n";
             } else if ($this->mode == Config::$modeSlide) {
                 // are we sliding up?  or sliding down
-                
                 $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$modeSlideCharUp;
+            } else if ($this->mode == Config::$modeBend) {
+                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::modeBendChar();
             } else if ($this->mode == Config::$modeNone) {
                 $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = "";
             }
@@ -228,7 +244,7 @@ class Keys {
 
         $ret .= "startX: $startX\n";
 
-        for ($s = 3; $s >= 0; $s--) {
+        for ($s = Config::$stringCount - 1; $s >= 0; $s--) {
             if ($s == $this->selectedString) {
                 $ret .= Colors::fg_color('white', $s + 1);
             } else {
@@ -246,23 +262,20 @@ class Keys {
                 $divider = "-";
 
                 if (isset($this->betweenSlots[$s][$x]) && !empty($this->betweenSlots[$s][$x])) {
-                    echo "Changing the divider between s: $s, $x\n";
                     $divider = $this->betweenSlots[$s][$x];
                 } 
-                    
+                
+                $color = 'bold_gray';
+
                 // if this is our note, highlight it
                 if ($x == $this->selectedSlot && $s == $this->selectedString) {
-                    if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
-                        $ret .= Colors::fg_color('white', str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_LEFT));
-                    } else {
-                        $ret .= Colors::fg_color('white', str_pad("", $colSize, $divider, STR_PAD_LEFT));
-                    }
+                    $color = 'white';
+                }
+
+                if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
+                    $ret .= Colors::fg_color($color, str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_LEFT));
                 } else {
-                    if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
-                        $ret .= str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_LEFT);
-                    } else {
-                        $ret .= str_pad("", $colSize, $divider, STR_PAD_LEFT);
-                    }
+                    $ret .= Colors::fg_color($color, str_pad("", $colSize, $divider, STR_PAD_LEFT));
                 }
 
                 $ret .= $divider;
@@ -280,6 +293,10 @@ class Keys {
                 break;
             case Config::$modeSlide:
                 $ret .= "s";
+
+                break;
+            case Config::$modeBend:
+                $ret .= "b";
 
                 break;
         }
