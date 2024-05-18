@@ -4,6 +4,7 @@ class Config {
     public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
     public static $empty = '';
     public static $stringCount = 6;
+    public static $displaySlotCount = 20;
     
     public static $modeNone = "";
     public static $modeHammer = "HAMMERON";
