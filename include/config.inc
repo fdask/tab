@@ -21,6 +21,10 @@ class Config {
         return json_decode('"\u2518"');
     }
 
+    public static function keypressSpaceBar() {
+        return chr(32);
+    }
+    
     public static function keypressDelete() {
         return chr(27) . chr(91) . chr(51) . chr(126);
     }

@@ -329,6 +329,19 @@ class Keys {
                         $this->mode = ($this->mode == Config::$modeTuning) ? Config::$modeNone : Config::$modeTuning;
 
                         break;
+                    case Config::keypressSpaceBar():
+                        $val = $this->strings[$this->selectedString][$this->selectedSlot];
+
+                        if ($val != Config::$empty) {
+                            // delete the value on the slot (and any gapChar)
+                            $this->strings[$this->selectedString][$this->selectedSlot] = Config::$empty;
+
+                            if (($this->selectedSlot - 1) >= 0) {
+                                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$empty;
+                            }
+                        }
+
+                        break;
                     case Config::keypressDelete():
                         $val = $this->strings[$this->selectedString][$this->selectedSlot];
 
@@ -382,8 +395,14 @@ class Keys {
 
             for ($x = 0; $x < $this->maxSlots; $x++) {
                 if ($x != $slot) {
-                    $newStrings[$str][$x] = $this->strings[$str][$x];
-                    $newBetweens[$str][$x] = $this->betweenSlots[$str][$x];
+                    $useX = $x;
+
+                    if ($useX > $slot) {
+                        $useX--;
+                    }
+
+                    $newStrings[$str][$useX] = $this->strings[$str][$x];
+                    $newBetweens[$str][$useX] = $this->betweenSlots[$str][$x];
                 }
             }
         }
