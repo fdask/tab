@@ -3,7 +3,7 @@ class Config {
     public static $debug = true;
     public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
     public static $empty = '';
-    public static $stringCount = 6;
+    public static $stringCount = 4;
     public static $displaySlotCount = 20;
     public static $autoAdvance = true;
     public static $shiftWidth = 10;
@@ -24,7 +24,7 @@ class Config {
     public static function keypressSpaceBar() {
         return chr(32);
     }
-    
+
     public static function keypressDelete() {
         return chr(27) . chr(91) . chr(51) . chr(126);
     }

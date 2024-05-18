@@ -334,7 +334,11 @@ class Keys {
 
                         break;
                     case Config::keypressSpaceBar():
-                        $val = $this->strings[$this->selectedString][$this->selectedSlot];
+                        if (isset($this->strings[$this->selectedString][$this->selectedSlot])) {
+                            $val = $this->strings[$this->selectedString][$this->selectedSlot];
+                        } else {
+                            $val = Config::$empty;
+                        }
 
                         if ($val != Config::$empty) {
                             // delete the value on the slot (and any gapChar)
@@ -406,7 +410,12 @@ class Keys {
                     }
 
                     $newStrings[$str][$useX] = $this->strings[$str][$x];
-                    $newBetweens[$str][$useX] = $this->betweenSlots[$str][$x];
+
+                    if (isset($this->betweenSlots[$str][$x])) {
+                        $newBetweens[$str][$useX] = $this->betweenSlots[$str][$x];
+                    } else {
+                        $newBetweens[$str][$useX] = Config::$empty;
+                    }
                 }
             }
         }
