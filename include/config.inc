@@ -13,6 +13,7 @@ class Config {
     public static $modeSlide = "SLIDE";
     public static $modeBend = "BEND";
     public static $modeTuning = "TUNING";
+    public static $modeClearing = "CLEARING";
     public static $modeHammerChar = "^";
     public static $modeSlideCharUp = "/";
     public static $modeSlideCharDown = "\\";

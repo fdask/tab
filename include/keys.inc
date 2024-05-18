@@ -81,8 +81,18 @@ class Keys {
             
             $c = Config::waitForInput();
 
-            // tuning mode
-            if ($this->mode == Config::$modeTuning) {
+            if ($this->mode == Config::$modeClearing) {
+                switch ($c) {
+                    case 'y':
+                        // clear 
+                        $this->reset();
+                    default:
+                        $this->mode = Config::$modeNone;
+                }
+
+                $redraw = true;
+            } else if ($this->mode == Config::$modeTuning) {
+                // tuning mode
                 $bufLen = strlen($this->buffer);
 
                 switch ($c) {
@@ -285,6 +295,11 @@ class Keys {
                         $this->mode = ($this->mode == Config::$modeBend) ? Config::$modeNone : Config::$modeBend;
 
                         break;
+                    case 'c':
+                        // clear mode
+                        $this->mode = Config::$modeClearing;
+                        
+                        break;
                     case 'd':
                         // dump out the object
                         file_put_contents("dump.out", serialize($this));
@@ -437,6 +452,9 @@ class Keys {
 
     public function load($filename) {
         $t = new Tab($filename);
+
+        $stringCount = $t->getStringCount();
+        $displayCount = $this->displayCount;
 
         // reset everything to the settings from the file
         $this->reset($displayCount, $stringCount);
@@ -699,6 +717,10 @@ class Keys {
                 break;
             case Config::$modeTuning:
                 $ret .= "t";
+
+                break;
+            case Config::$modeClearing:
+                $ret .= "clear? y/n ";
 
                 break;
         }
