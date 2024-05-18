@@ -40,6 +40,10 @@ class Tab {
         return $this->tuning;
     }
 
+    public function getSlotCount() {
+        return $this->slotCount;
+    }
+    
     private function parseStringCount() {
         // get the number of strings
         for ($s = 0; $s < count($this->data); $s++) {

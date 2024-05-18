@@ -5,11 +5,14 @@ class Config {
     public static $empty = '';
     public static $stringCount = 6;
     public static $displaySlotCount = 20;
+    public static $autoAdvance = true;
+    public static $shiftWidth = 10;
     
     public static $modeNone = "";
     public static $modeHammer = "HAMMERON";
     public static $modeSlide = "SLIDE";
     public static $modeBend = "BEND";
+    public static $modeTuning = "TUNING";
     public static $modeHammerChar = "^";
     public static $modeSlideCharUp = "/";
     public static $modeSlideCharDown = "\\";
@@ -18,12 +21,36 @@ class Config {
         return json_decode('"\u2518"');
     }
 
+    public static function keypressDelete() {
+        return chr(27) . chr(91) . chr(51) . chr(126);
+    }
+
+    public static function keypressHome() {
+        return chr(27) . chr(91) . chr(72);
+    }
+
+    public static function keypressEnd() {
+        return chr(27) . chr(91) . chr(70);
+    }
+
+    public static function keypressEscape() {
+        return chr(27);
+    }
+
     public static function keypressLeftArrow() {
         return chr(27) . chr(91) . chr(68);
     }
 
+    public static function keypressShiftLeftArrow() {
+        return chr(27) . chr(91) . chr(49) . chr(59) . chr(50) . chr(68);
+    }
+
     public static function keypressRightArrow() {
         return chr(27) . chr(91) . chr(67);
+    }
+
+    public static function keypressShiftRightArrow() {
+        return chr(27) . chr(91) . chr(49) . chr(59) . chr(50) . chr(67);
     }
 
     public static function keypressUpArrow() {

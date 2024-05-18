@@ -37,17 +37,40 @@ class Keys {
         $this->displaySlots = is_null($displaySlotCount) ? Config::$displaySlotCount : $displaySlotCount;
 
         // how much actual data we have
-        $this->maxSlots = 0;
+        $this->maxSlots = 1;
         
         $this->stringCount = is_null($stringCount) ? Config::$stringCount : $stringCount;
 
         $this->strings = array();
         $this->betweenSlots = array();
+        $this->tuning = array();
 
-        for ($x = 0; $x < $stringCount; $x++) {
+        for ($x = 0; $x < $this->stringCount; $x++) {
             $this->strings[] = array();
             $this->betweenSlots[] = array();
+            $this->tuning[] = "XX";
         }
+    }
+
+    public function validateTuning($tune) {
+        if (preg_match("@[A-G][b#]?[0-9]@", $tune)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getTuningLength() {
+        // this is the minimum 
+        $len = 2;
+
+        for ($x = 0; $x < $this->stringCount; $x++) {
+            if (strlen($this->tuning[$x]) > $len) {
+                $len = strlen($this->tuning[$x]);
+            }
+        }
+
+        return $len;
     }
 
     public function gameLoop() {
@@ -58,134 +81,285 @@ class Keys {
             
             $c = Config::waitForInput();
 
-            switch ($c) {
-                case Config::keypressUpArrow():
-                    if ($this->selectedString < $this->stringCount - 1) {
-                        $this->selectedString++;
-                        $redraw = true;
-                    }
+            // tuning mode
+            if ($this->mode == Config::$modeTuning) {
+                $bufLen = strlen($this->buffer);
 
-                    break;
-                case Config::keypressDownArrow():
-                    if ($this->selectedString > 0) {
-                        $this->selectedString--;
-                        $redraw = true;
-                    }
-
-                    break;
-                case Config::keypressLeftArrow():
-                    if ($this->selectedSlot > 0) {
-                        $this->selectedSlot--;
-                        $redraw = true;
-                    }
-
-                    break;
-                case Config::keypressRightArrow():
-                    if ($this->selectedSlot < $this->maxSlots) {
-                        $this->selectedSlot++;
-                        $redraw = true;
-                    }
-
-                    break;
-                case Config::keypressEnter():
-                    // submit the buffer
-                    if (!empty($this->buffer)) {
-                        if ($this->validateNote($this->buffer)) {
-                            $this->addNote($this->buffer);
+                switch ($c) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        if ($bufLen >= 1 && $bufLen < 3) {
+                            $this->buffer .= $c;
                         }
-                    }
 
-                    // clear the buffer
-                    $this->buffer = "";
-
-                    // clear the mode
-                    $this->mode = Config::$modeNone;
-
-                    $redraw = true;
-
-                    break;
-                case '0':
-                    // if the buffer is empty, go right to adding
-                    if ($this->buffer === "") {
-                        $this->addNote($c);
-
-                        $redraw = true;
+                        if ($this->validateTuning($this->buffer)) {
+                            $this->tuning[$this->selectedString] = $this->buffer;
+                            $this->buffer = "";
+                            $this->mode = Config::$modeNone;
+                        }
 
                         break;
-                    } 
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                case 'x':
-                    $this->buffer .= $c;
+                    case '#':
+                        if ($bufLen >= 1 && $bufLen < 2) {
+                            $this->buffer .= "#";
+                        }
 
-                    $redraw = true;
+                        break;
+                    case 'b':
+                        if ($bufLen == 0) {
+                            $this->buffer = "B";
+                        } else if ($bufLen == 1) {
+                            $this->buffer .= "b";
+                        }
 
-                    break;
-                case 'b':
-                    // bend mode
-                    $this->mode = ($this->mode == Config::$modeBend) ? Config::$modeNone : Config::$modeBend;
+                        break;
+                    case 'a':
+                    case 'A':
+                    case 'B':
+                    case 'c':
+                    case 'C':
+                    case 'd':
+                    case 'D':
+                    case 'e':
+                    case 'E':
+                    case 'f':
+                    case 'F':
+                    case 'g':
+                    case 'G':
+                        if ($bufLen == 0) {
+                            $this->buffer = strtoupper($c);
+                        }
 
-                    $redraw = true;
+                        break;
+                    case Config::keypressEnter():
+                        if ($this->validateTuning($this->buffer)) {
+                            $this->tuning[$this->selectedString] = $this->buffer;
+                            $this->buffer = "";
+                            $this->mode = Config::$modeNone;
+                        }
 
-                    break;
-                case 'h':
-                    // hammer on mode (not usable on first slot)
-                    if ($this->selectedSlot > 0) {
-                        $this->mode = ($this->mode == Config::$modeHammer) ? Config::$modeNone : Config::$modeHammer;
+                        break;
+                    case 't':
+                    case Config::keypressEscape():
+                        $this->mode = Config::$modeNone;
+                        $this->buffer = "";
                     
-                        $redraw = true;
-                    }
+                        break;
+                    case Config::keypressBackspace():
+                        // delete the last char from the buffer
+                        $count = strlen($this->buffer);
 
-                    break;
-                case 'l':
-                    // load a file
-                    $filename = readline("filename? ");
+                        if ($count >= 1) {
+                            $this->buffer = substr($this->buffer, 0, $count - 1);
+                        }
 
-                    if ($this->load($filename)) {
-                        $this->redraw = true;
-                    }
+                        break;
+                    case 'q':
+                        $this->gameOver();
 
-                    break;
-                case 'p':
-                    // print!
-                    $this->print("out.txt");
+                        break;
+                    default:
+                }
 
-                    break;
-                case 'q':
-                    // quit
-                    $this->gameOver();
+                $redraw = true;
+            } else {
+                $redraw = true;
 
-                    break;
-                case 's':
-                    // slide mode (not usable on first slot)
-                    if ($this->selectedSlot > 0) {
-                        $this->mode = ($this->mode == Config::$modeSlide) ? Config::$modeNone : Config::$modeSlide;
+                switch ($c) {
+                    case Config::keypressHome():
+                        $this->selectedSlot = 0;
 
-                        $redraw = true;
-                    }
+                        break;
+                    case Config::keypressEnd():
+                        $this->selectedSlot = $this->maxSlots - 1;
 
-                    break;
-                case Config::keypressBackspace():
-                    // delete the last char from the buffer
-                    $count = strlen($this->buffer);
+                        break;
+                    case Config::keypressUpArrow():
+                        if ($this->selectedString < $this->stringCount - 1) {
+                            $this->selectedString++;
+                        }
 
-                    if ($count >= 1) {
-                        $this->buffer = substr($this->buffer, 0, $count - 1);
+                        break;
+                    case Config::keypressDownArrow():
+                        if ($this->selectedString > 0) {
+                            $this->selectedString--;
+                        }
+
+                        break;
+                    case Config::keypressLeftArrow():
+                        if ($this->selectedSlot > 0) {
+                            $this->selectedSlot--;
+                        } else {
+                            $redraw = false;
+                        }
+
+                        break;
+                    case Config::keypressRightArrow():
+                        if ($this->selectedSlot < $this->maxSlots - 1) {
+                            $this->selectedSlot++;
+                        } else {
+                            $redraw = false;
+                        }
+
+                        break;
+                    case Config::keypressShiftLeftArrow():
+                        $this->selectedSlot = $this->selectedSlot - Config::$shiftWidth;
+
+                        if ($this->selectedSlot < 0) {
+                            $this->selectedSlot = 0;
+                        }
+
+                        break;
+                    case Config::keypressShiftRightArrow():
+                        $this->selectedSlot += Config::$shiftWidth;
+
+                        if ($this->selectedSlot >= $this->maxSlots) {
+                            $this->selectedSlot = $this->maxSlots - 1;
+                        }
                         
-                        $redraw = true;
-                    }
+                        break;
+                    
+                    case Config::keypressEnter():
+                        // submit the buffer
+                        if (!empty($this->buffer)) {
+                            if ($this->validateNote($this->buffer)) {
+                                $this->addNote($this->buffer);
+                            }
+                        }
 
-                    break;
-                default:
-                    echo "unhandled: ";
-                    print_r(Config::strToChr($c));
+                        // clear the buffer
+                        $this->buffer = "";
+
+                        // clear the mode
+                        $this->mode = Config::$modeNone;
+
+                        break;
+                    case Config::keypressEscape():
+                        $this->mode = Config::$modeNone;
+                        $this->buffer = "";
+                    
+                        break;
+                    case '0':
+                        // if the buffer is empty, go right to adding
+                        if ($this->buffer === "") {
+                            $this->addNote($c);
+                            $this->buffer = "";
+                            $this->mode = Config::$modeNone;
+
+                            break;
+                        } 
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                    case 'x':
+                        $this->buffer .= $c;
+
+                        if (strlen($this->buffer) == 2 || in_array($c, array('3', '4', '5', '6', '7', '8', '9')) || $c == 'x') {
+                            // skip to adding
+                            $this->addNote($this->buffer);
+                            $this->buffer = "";
+                            $this->mode = Config::$modeNone;
+                        }
+
+                        break;
+                    case 'b':
+                        // bend mode
+                        $this->mode = ($this->mode == Config::$modeBend) ? Config::$modeNone : Config::$modeBend;
+
+                        break;
+                    case 'd':
+                        // dump out the object
+                        file_put_contents("dump.out", serialize($this));
+                        echo "dumped.";
+
+                        $redraw = false;
+
+                        break;
+                    case 'h':
+                        // hammer on mode (not usable on first slot)
+                        if ($this->selectedSlot > 0) {
+                            $this->mode = ($this->mode == Config::$modeHammer) ? Config::$modeNone : Config::$modeHammer;
+                        }
+
+                        break;
+                    case 'l':
+                        // load a file
+                        $filename = readline("filename? ");
+
+                        if (!$this->load($filename)) {
+                            $redraw = false;
+                        }
+
+                        break;
+                    case 'p':
+                        // print!
+                        $this->print("out.txt");
+
+                        $redraw = false;
+
+                        break;
+                    case 'q':
+                        // quit
+                        $this->gameOver();
+
+                        break;
+                    case 's':
+                        // slide mode (not usable on first slot)
+                        if ($this->selectedSlot > 0) {
+                            $this->mode = ($this->mode == Config::$modeSlide) ? Config::$modeNone : Config::$modeSlide;
+                        }
+
+                        break;
+                    case 't':
+                        // set the tuning!
+                        $this->mode = ($this->mode == Config::$modeTuning) ? Config::$modeNone : Config::$modeTuning;
+
+                        break;
+                    case Config::keypressDelete():
+                        $val = $this->strings[$this->selectedString][$this->selectedSlot];
+
+                        if ($val != Config::$empty) {
+                            // delete the value on the slot (and any gapChar)
+                            $this->strings[$this->selectedString][$this->selectedSlot] = Config::$empty;
+
+                            if (($this->selectedSlot - 1) >= 0) {
+                                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$empty;
+                            }
+                        } else {
+                            // delete the entire slot!
+                            $this->nukeSlot($this->selectedSlot);
+                        }
+
+                        break;
+                    case Config::keypressBackspace():
+                        // delete the last char from the buffer
+                        $count = strlen($this->buffer);
+
+                        if ($count >= 1) {
+                            $this->buffer = substr($this->buffer, 0, $count - 1);
+                        } else {
+                            $redraw = false;
+                        }
+
+                        break;
+                    default:
+                        echo "unhandled: ";
+                        print_r(Config::strToChr($c));
+                }
             }
 
             if ($redraw) {
@@ -196,6 +370,35 @@ class Keys {
         $this->gameOver();
     }
 
+    public function nukeSlot($slot) {
+        $newStrings = array();
+        $newBetweens = array();
+
+        for ($str = 0; $str < $this->stringCount; $str++) {
+            if (!isset($newStrings[$str])) {
+                $newStrings[$str] = array();
+                $newBetweens[$str] = array();
+            }
+
+            for ($x = 0; $x < $this->maxSlots; $x++) {
+                if ($x != $slot) {
+                    $newStrings[$str][$x] = $this->strings[$str][$x];
+                    $newBetweens[$str][$x] = $this->betweenSlots[$str][$x];
+                }
+            }
+        }
+
+        print_r($this->strings);
+        print_r($newStrings);
+        $this->strings = $newStrings;
+        $this->betweenSlots = $newBetweens;
+        $this->maxSlots--;
+
+        if ($this->selectedSlot >= $this->maxSlots) {
+            $this->selectedSlot--;
+        }
+    }
+
     public function gameOver() {
         system("stty " . $this->term);
 
@@ -203,78 +406,51 @@ class Keys {
     }
 
     public function load($filename) {
-        if (file_exists($filename)) {
-            $data = file($filename);
+        $t = new Tab($filename);
 
-            print_r($data);
+        // reset everything to the settings from the file
+        $this->reset($displayCount, $stringCount);
 
-            $tuning = array();
+        // load data into the strings
 
-            // get the number of strings
-            for ($s = 0; $s < count($data); $s++) {
-                if ($data[$s] == "") {
-                    $stringCount = $s + 1;
-
-                    echo "Got a stringcount of $stringCount\n";
-                }
-
-                $tuning[] = substr($data[$s], 0, 2);
-            }
-
-            // get the number of slots per line
-            $length = strlen($data[0]) - 4;
-
-            for ($x = 4; $x < strlen($data[0]) - 1; $x++) {
-                // look for a character on any of the strings
-                for ($s = 0; $s < $stringCount; $s++) {
-                    if ($data[$s] != "-") {
-                        // we have data on string $s
-
-                    }
-                }
-            }
-            
-
-            // get the tuning
-            print_r($tuning);
-
-            // reset everything to the settings from the file
-            $this->reset($displayCount, $stringCount);
-
-            // load data into the strings
-
-
-            return true;
-        }
-
-        return false;
     }
 
     public function getDividedRanges($width) {
         $ret = array();
 
+        $colCount = 0;
         $start = 0;
 
         // how many chunks will it take to get us to rows no longer than $width chars?
         // what are those chunks?
+        echo "Width: $width Maxslots: " . $this->maxSlots . "\n";
+
         while (1) {
             for ($x = $start; $x < $this->maxSlots; $x++) {
                 $colSize = $this->getColSize($x);
 
+                echo "colCount: $colCount Adding a colSize of $colSize at x: $x\n";
+
+                // running tally of character width
                 $colCount += $colSize + 1;
 
-                if ($colCount >= $width) {
+                if ($colCount > $width) {
+                    echo "stopping at slot ($x)\n";
                     $stop = $x;
                     
-                    $ret[] = array($start, $stop);
+                    $ret[] = array($start, $stop, $colCount);
 
+                    // continue with an updated start
                     $start = $x + 1;
-
-                    break;
+                    $colCount = 0;
+                    echo "breaking\n";
+                    continue;
                 }
+
+                echo "bottom of the for\n";
             }
 
-            $ret[] = array($start, $x);
+            $ret[] = array($start, $x, $colCount);
             
             break;
         }
@@ -282,20 +458,38 @@ class Keys {
         return $ret;
     }
 
-    public function print($filename, $lineWidth = 40) {
+    public function print($filename, $lineWidth = 20) {
         $ret = "";
 
+        // in cases where we exceed the line length, we split into staffs
         $dividedRanges = $this->getDividedRanges($lineWidth);
 
+        // get the maximum width of the rows
+        $maxWidth = 0;
+
+        foreach ($dividedRanges as $range) {
+            if ($range[2] > $maxWidth) {
+                $maxWidth = $range[2];
+            }
+        }
+
+        print_r($dividedRanges);
+        
         foreach ($dividedRanges as $range) {
             $start = $range[0];
             $stop = $range[1];
         
+            $tuningLength = $this->getTuningLength();
+
             for ($s = $this->stringCount - 1; $s >= 0; $s--) {
+                $ret .= str_pad($this->tuning[$s], $tuningLength, " ", STR_PAD_LEFT);
+
                 $ret .= "|-";
                 
                 // for each slot
-                for ($x = $start; $x < $stop; $x++) {
+                $width = 0;
+
+                for ($x = $start; $x <= $stop; $x++) {
                     // figure out if we need a width of one or two
                     $colSize = $this->getColSize($x);
 
@@ -314,10 +508,20 @@ class Keys {
                     
                     $ret .= str_pad($val, $colSize, $divider, STR_PAD_LEFT);
                     $ret .= $divider;
+
+                    $width += $colSize + 1;
+                }
+
+                if ($width < $maxWidth) {
+                    for ($w = $width; $w < $maxWidth; $w++) {
+                        $ret .= "-";
+                    }
                 }
 
                 $ret .= "|\n";
             }
+
+            $ret .= "\n";
         }
 
         file_put_contents($filename, $ret);
@@ -371,187 +575,43 @@ class Keys {
         }
 
         // go to the next slot
-        $this->selectedSlot++;
-        $this->maxSlots++;
-
-        print_r($this->strings);
-        print_r($this->betweenSlots);
-    }
-
-    function getStringCount($data) {
-    // get the number of strings
-    for ($s = 0; $s < count($data); $s++) {
-        if (trim($data[$s]) == "") {
-            $stringCount = $s;
-
-            break;
-        }
-    }
-
-    $stringCount = $s;
-
-    return $stringCount;
-}
-
-function getTuning($data) {
-    $tuning = array();
-
-    for ($s = 0; $s < count($data); $s++) {
-        if (trim($data[$s]) == "") {
-            break;
+        if ($this->selectedSlot == $this->maxSlots - 1) {
+            echo "Expanding maxslots!\n";
+            $this->maxSlots++;
         }
 
-        $tuning[] = substr($data[$s], 0, 2);
-    }
-
-    return array_reverse($tuning);
-}
-
-parse($data);
-
-function breakIntoStaffs($data) {
-    $ret = array();
-    $stanza = array();
-
-    for ($ln = 0; $ln < count($data); $ln++) {
-        if (trim($data[$ln]) == "") {
-            $ret[] = $stanza;
-            $stanza = array();
-        } else {
-            // remove leadin
-            $add = substr(trim($data[$ln]), 4);
-
-            // remove trailing
-            $add = substr($add, 0, strlen($add) - 1);
-
-            $stanza[] = $add;
+        if (Config::$autoAdvance) {
+            $this->selectedSlot++;
         }
-    }
+    } 
 
-    if (count($stanza)) {
-        $ret[] = $stanza;
-    }
-
-    return $ret;
-}
-
-function parse($data) {
-    $stringCount = getStringCount($data);
-
-    echo "String count $stringCount\n";
-
-    $tuning = getTuning($data);
-
-    print_r($tuning);
-
-    // break the things into chunks
-    $chunks = breakIntoStaffs($data);
-
-    print_r($chunks);
-
-    $slotCount = 0;
-
-    // initalize the main returns
-    $strings = array();
-    $betweenSlots = array();
-
-    for ($x = 0; $x < $stringCount; $x++) {
-        $strings[$x] = array();
-        $betweenSlots[$x] = array();
-    }
-
-    foreach ($chunks as $chunk) {
-        $length = strlen($chunk[0]);
-
-        for ($x = 0; $x < $length; $x++) {
-            for ($string = 0; $string < $stringCount; $string++) {
-                echo "Setting size to 1\n";
-                $size = 1;
-
-                // check to see what size we have
-                if (preg_match("@[0-9x]@", $chunk[$string][$x])) {
-                    // we have a 1.  lets see if the next is also a number
-                    if (preg_match("@[0-9x]@", $chunk[$string][$x + 1])) {
-                        echo "Setting size to 2\n";
-                        $size = 2;
-                    }
-                }
-            }
-
-            if ($size === 1) {
-                for ($string = 0; $string < $stringCount; $string++) {
-                    if ($chunk[$string][$x] != "-") {
-                        $strings[$string][$slotCount] = $chunk[$string][$x];
-                    } else {
-                        $strings[$string][$slotCount] = Config::$empty;
-                    }
-
-                    $gapChar = "";
-
-                    if (isset($chunk[$string][$x + 1])) {
-                        $gapChar = $chunk[$string][$x + 1];
-
-                        if ($gapChar != "" && $gapChar != "-") {
-                            $betweenSlots[$string][$slotCount] = $gapChar;
-                        }
-                    }
-
-                    echo "We have a gapchar of '$gapChar'\n";
-                }
-            } else if ($size === 2) {
-                for ($string = 0; $string < $stringCount; $string++) {
-                    $str = $chunk[$string][$x] . $chunk[$string][$x + 1];
-            
-                    if (preg_match("@[0-9x]+@", $str, $matches)) {
-                        $strings[$string][$slotCount] = $matches[0];
-                    } else {
-                        $strings[$string][$slotCount] = Config::$empty;
-                    }
-
-                    $gapChar = "";
-
-                    if (isset($chunk[$string][$x + 2])) {
-                        $gapChar = $chunk[$string][$x + 2];
-
-                        if ($gapChar != "" && $gapChar != "-") {
-                            $betweenSlots[$string][$slotCount] = $gapChar;
-                        }
-                    }
-
-                    echo "We have a gapcar of '$gapChar'\n";
-                }
-            }
-
-            $slotCount++;
-
-            // advance x ahead to the next spot.
-            $x = $x + $size;
-        }
-    }
-
-    print_r(array_reverse($strings));
-    print_r(array_reverse($betweenSlots));
-}
     public function __toString() {
         $ret = "\n";
         $ret .= "Key: " . $this->key . "\n";
-        $ret .= "Current slot: " . $this->selectedSlot . "\n";
+        $ret .= "maxSlots: " . $this->maxSlots . " selectedSlot: " . $this->selectedSlot . "\n";
 
         $startX = (($this->selectedSlot - $this->displaySlots) > 0) ? ($this->selectedSlot - $this->displaySlots) : 0;
+        $tuningLength = $this->getTuningLength();
 
         $ret .= "startX: $startX\n";
 
         for ($s = $this->stringCount - 1; $s >= 0; $s--) {
+            $str = str_pad($this->tuning[$s], $tuningLength, " ", STR_PAD_LEFT);
+
             if ($s == $this->selectedString) {
-                $ret .= Colors::fg_color('white', $s + 1);
+                 $ret .= Colors::fg_color('white', $str);
             } else {
-                $ret .= $s + 1;
+                $ret .= $str;
             }
             
+            if ($startX === 0) {
+                $ret .= ":";
+            }
+
             $ret .= "|-";
             
             // for each slot
-            for ($x = $startX; $x < $startX + $this->displaySlots; $x++) {
+            for ($x = $startX; $x <= $startX + $this->displaySlots; $x++) {
                 // figure out if we need a width of one or two
                 $colSize = $this->getColSize($x);
 
@@ -578,7 +638,13 @@ function parse($data) {
                 $ret .= $divider;
             }
 
-            $ret .= "|\n";
+            $ret .= "|";
+            
+            if ($x == $this->maxSlots) {
+                $ret .= ":";
+            }
+
+            $ret .= "\n";
         }
 
         switch ($this->mode) {
@@ -594,6 +660,10 @@ function parse($data) {
                 break;
             case Config::$modeBend:
                 $ret .= "b";
+
+                break;
+            case Config::$modeTuning:
+                $ret .= "t";
 
                 break;
         }
