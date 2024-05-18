@@ -270,9 +270,13 @@ class Keys {
 
                         if (strlen($this->buffer) == 2 || in_array($c, array('3', '4', '5', '6', '7', '8', '9')) || $c == 'x') {
                             // skip to adding
-                            $this->addNote($this->buffer);
-                            $this->buffer = "";
-                            $this->mode = Config::$modeNone;
+                            if ($this->validateNote($this->buffer)) {
+                                $this->addNote($this->buffer);
+                                $this->buffer = "";
+                                $this->mode = Config::$modeNone;
+                            } else {
+                                $this->buffer = substr($this->buffer, 0, strlen($this->buffer) - 1);
+                            }
                         }
 
                         break;
@@ -407,8 +411,6 @@ class Keys {
             }
         }
 
-        print_r($this->strings);
-        print_r($newStrings);
         $this->strings = $newStrings;
         $this->betweenSlots = $newBetweens;
         $this->maxSlots--;
@@ -547,6 +549,11 @@ class Keys {
     }
 
     public function validateNote($note) {
+        // x is valid
+        if ($note == "x") {
+            return true;
+        }
+
         // 0 to 24
         $i = intval($note);
 
