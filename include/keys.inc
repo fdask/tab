@@ -365,6 +365,9 @@ class Keys {
                         }
 
                         break;
+                    case 'z':
+                        print_r($this->strings);
+                        break;
                     case Config::keypressDelete():
                         $val = $this->strings[$this->selectedString][$this->selectedSlot];
 
@@ -454,13 +457,17 @@ class Keys {
         $t = new Tab($filename);
 
         $stringCount = $t->getStringCount();
-        $displayCount = $this->displayCount;
+        $displayCount = $this->displaySlots;
 
         // reset everything to the settings from the file
         $this->reset($displayCount, $stringCount);
 
         // load data into the strings
-
+        $this->tuning = $t->getTuning();
+        $this->strings = $t->getStrings();
+        $this->betweenSlots = $t->getBetweenSlots();
+        $this->maxSlots = $t->getSlotCount() + 1;
+        $this->selectedSlot = 0;
     }
 
     public function getDividedRanges($width) {
@@ -646,8 +653,6 @@ class Keys {
         $startX = (($this->selectedSlot - $this->displaySlots) > 0) ? ($this->selectedSlot - $this->displaySlots) : 0;
         $tuningLength = $this->getTuningLength();
 
-        $ret .= "startX: $startX\n";
-
         for ($s = $this->stringCount - 1; $s >= 0; $s--) {
             $str = str_pad($this->tuning[$s], $tuningLength, " ", STR_PAD_LEFT);
 
@@ -683,9 +688,9 @@ class Keys {
                 }
 
                 if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
-                    $ret .= Colors::fg_color($color, str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_LEFT));
+                    $ret .= Colors::fg_color($color, str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_RIGHT));
                 } else {
-                    $ret .= Colors::fg_color($color, str_pad("", $colSize, $divider, STR_PAD_LEFT));
+                    $ret .= Colors::fg_color($color, str_pad("", $colSize, $divider, STR_PAD_RIGHT));
                 }
 
                 $ret .= $divider;
