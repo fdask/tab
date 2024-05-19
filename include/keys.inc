@@ -348,7 +348,14 @@ class Keys {
                         $this->mode = ($this->mode == Config::$modeTuning) ? Config::$modeNone : Config::$modeTuning;
 
                         break;
+                    case 'z':
+                        // DEBUG
+                        print_r($this->strings);
+                        print_r($this->betweenSlots);
+
+                        break;    
                     case Config::keypressSpaceBar():
+                        // clears the value on the slot
                         if (isset($this->strings[$this->selectedString][$this->selectedSlot])) {
                             $val = $this->strings[$this->selectedString][$this->selectedSlot];
                         } else {
@@ -365,10 +372,8 @@ class Keys {
                         }
 
                         break;
-                    case 'z':
-                        print_r($this->strings);
-                        break;
                     case Config::keypressDelete():
+                        // clears the value, or the column if no value present
                         $val = $this->strings[$this->selectedString][$this->selectedSlot];
 
                         if ($val != Config::$empty) {

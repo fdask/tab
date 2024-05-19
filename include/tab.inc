@@ -43,7 +43,7 @@ class Tab {
     public function getSlotCount() {
         return $this->slotCount;
     }
-    
+
     private function parseStringCount() {
         // get the number of strings
         for ($s = 0; $s < count($this->data); $s++) {
@@ -121,6 +121,8 @@ class Tab {
                         if (preg_match("@[0-9x]@", $chunk[$string][$x + 1])) {
                             echo "Setting size to 2\n";
                             $size = 2;
+
+                            break;
                         }
                     }
                 }
