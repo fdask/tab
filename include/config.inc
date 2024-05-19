@@ -1,13 +1,23 @@
 <?php
 class Config {
+    // enable a noisy debug mode
     public static $debug = true;
-    public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
-    public static $empty = '';
+    
+    // set the number of strings
     public static $stringCount = 4;
+
+    // how wide do we want the display
     public static $displaySlotCount = 20;
+
+    // advance cursor automatically when entering a value
     public static $autoAdvance = true;
+
+    // how far to move left or right with shift+arrow
     public static $shiftWidth = 10;
     
+    public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
+    public static $empty = '';
+
     public static $modeNone = "";
     public static $modeHammer = "HAMMERON";
     public static $modeSlide = "SLIDE";

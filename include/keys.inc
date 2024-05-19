@@ -321,8 +321,13 @@ class Keys {
                         $filename = readline("filename? ");
 
                         if (strlen($filename) > 0) {
-                            if (!$this->load($filename)) {
-                                echo "load failed.\n";
+                            if (file_exists($filename)) {
+                                if (!$this->load($filename)) {
+                                    echo "load failed.";
+                                    $redraw = false;
+                                }
+                            } else {
+                                echo "error fnf.";
                                 $redraw = false;
                             }
                         }
