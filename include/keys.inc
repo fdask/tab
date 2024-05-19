@@ -22,19 +22,20 @@ class Keys {
         // assign a random string
         $this->key = Config::$keyArray[array_rand(Config::$keyArray)];
 
+        // initialize everything
         $this->reset();
 
         // last thing in the constructor
         $this->gameLoop();
     }
 
-    public function reset($displaySlotCount = null, $stringCount = null) {
+    public function reset($stringCount = null) {
         // reset some variables
         $this->mode == Config::$modeNone;
         $this->selectedString = 0;
         $this->selectedSlot = 0;
         $this->buffer = "";
-        $this->displaySlots = is_null($displaySlotCount) ? Config::$displaySlotCount : $displaySlotCount;
+        $this->displaySlots = Config::$displaySlotCount;
 
         // how much actual data we have
         $this->maxSlots = 1;
@@ -319,8 +320,11 @@ class Keys {
                         // load a file
                         $filename = readline("filename? ");
 
-                        if (!$this->load($filename)) {
-                            $redraw = false;
+                        if (strlen($filename) > 0) {
+                            if (!$this->load($filename)) {
+                                echo "load failed.\n";
+                                $redraw = false;
+                            }
                         }
 
                         break;
@@ -459,13 +463,13 @@ class Keys {
     }
 
     public function load($filename) {
+        // the tab class parses the written files
         $t = new Tab($filename);
 
         $stringCount = $t->getStringCount();
-        $displayCount = $this->displaySlots;
-
+        
         // reset everything to the settings from the file
-        $this->reset($displayCount, $stringCount);
+        $this->reset($stringCount);
 
         // load data into the strings
         $this->tuning = $t->getTuning();
@@ -473,6 +477,8 @@ class Keys {
         $this->betweenSlots = $t->getBetweenSlots();
         $this->maxSlots = $t->getSlotCount() + 1;
         $this->selectedSlot = 0;
+
+        return true;
     }
 
     public function getDividedRanges($width) {
@@ -616,25 +622,34 @@ class Keys {
     }
 
     public function addNote($note) {
-        // add either the note, or an empty space
+        // add the note
         for ($x = 0; $x < $this->stringCount; $x++) {
             if ($x == $this->selectedString) {
                 $this->strings[$x][$this->selectedSlot] = $note;
-            } else {
-                //$this->strings[$x][$this->selectedSlot] = Config::$empty;
-            }
+            } 
         }
 
         // add the modifier 
         if ($this->selectedSlot >= 1) {
             if ($this->mode == Config::$modeHammer) {
+                // hammer on
                 $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$modeHammerChar;
             } else if ($this->mode == Config::$modeSlide) {
                 // are we sliding up?  or sliding down
-                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$modeSlideCharUp;
+                $preVal = $this->strings[$this->selectedString][$this->selectedSlot - 1];
+
+                if ($preVal > $note) {
+                    $char = Config::$modeSlideCharDown;
+                } else {
+                    $char = Config::$modeSlideCharUp;
+                }
+
+                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = $char;
             } else if ($this->mode == Config::$modeBend) {
+                // bend
                 $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::modeBendChar();
             } else if ($this->mode == Config::$modeNone) {
+                // nothing
                 $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = "";
             }
         }
