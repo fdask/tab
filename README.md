@@ -8,9 +8,17 @@ Ever seen a guitar tab before?  It's just numbers on lines showing which frets t
 on each string.  This is a tool for entering and saving your own!
 
 Navigate with the arrow keys, add to your tab by typing in numbers.
-Enter hammer/slide/bend mode, then pressing a number, adds that modifier.
+Entering hammer/slide/bend mode, then pressing a number, adds that modifier.
+
+'^' represents hammer ons, or pull-offs
+'/' or '\' represent slides
+still figuring out the best character for bend
+
+Tuning, shown at the start of the tab to the left of the |'s, is meant
+to be set in scientific notation.  <note><number> [A-G][#b]?[1-8]
 
 # Keys
+0-9 enter values
 Arrow keys navigate the cursor
 Shift left arrow or shift right arrow skip the cursor in that direction
 Home key goes to start of measure
