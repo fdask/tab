@@ -15,7 +15,7 @@ class Config {
     // how far to move left or right with shift+arrow
     public static $shiftWidth = 10;
     
-    public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
+    public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G');
     public static $empty = '';
 
     public static $modeNone = "";
@@ -27,6 +27,8 @@ class Config {
     public static $modeHammerChar = "^";
     public static $modeSlideCharUp = "/";
     public static $modeSlideCharDown = "\\";
+    public static $colorSelectedString = "purple";
+    public static $colorSelectedSlot = "purple";
 
     public static function modeBendChar() {
         return json_decode('"\u2518"');

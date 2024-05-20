@@ -3,6 +3,8 @@
 /* main game class */
 class Keys {
     public $key;
+    public $scale;
+    public $scaleMode;
     public $selectedString;
     public $selectedSlot;
     public $displaySlots;
@@ -53,6 +55,50 @@ class Keys {
         }
     }
 
+    public function addInterval($note, $interval) {
+        $count = 0;
+
+        $letterPos = array_search($note, Config::$keyArray);
+
+        if ($letterPos === false) {
+            return false;
+        }
+      
+        do {
+            if ($letterPos >= count(Config::$keyArray) - 1) {
+                $letterPos = 0;
+            } else {
+                $letterPos++;
+            }
+
+            $count++;
+        } while ($count < $interval);
+
+        return Config::$keyArray[$letterPos];
+    }
+
+    // the currently selected note
+    public function getNote() {
+        // get note if any
+        if (isset($this->strings[$this->selectedString][$this->selectedSlot])) {
+            $n = intval($this->strings[$this->selectedString][$this->selectedSlot]);
+
+            // we have a good integer.  get tuning
+            $tuning = $this->tuning[$this->selectedString];
+
+            if ($this->tuning != "XX") {
+                // add n to start, and convert back to scientific
+                if (preg_match("@([A-G][#b]?)[0-9]@", $tuning, $matches)) {
+                    $startNote = $matches[1];
+
+                    return $this->addInterval($startNote, $n);
+                }
+            } 
+        } 
+
+        return false;
+    }
+        
     public function validateTuning($tune) {
         if (preg_match("@[A-G][b#]?[0-9]@", $tune)) {
             return true;
@@ -661,7 +707,6 @@ class Keys {
 
         // go to the next slot
         if ($this->selectedSlot == $this->maxSlots - 1) {
-            echo "Expanding maxslots!\n";
             $this->maxSlots++;
         }
 
@@ -672,8 +717,9 @@ class Keys {
 
     public function __toString() {
         $ret = "\n";
-        $ret .= "Key: " . $this->key . "\n";
-        $ret .= "maxSlots: " . $this->maxSlots . " selectedSlot: " . $this->selectedSlot . "\n";
+        $ret .= "key: " . $this->key . "\n";
+        $ret .= "note: " . $this->getNote() . "\n";
+        //$ret .= "slot " . $this->selectedSlot . "/" . $this->maxSlots . "\n";
 
         $startX = (($this->selectedSlot - $this->displaySlots) > 0) ? ($this->selectedSlot - $this->displaySlots) : 0;
         $tuningLength = $this->getTuningLength();
@@ -681,11 +727,13 @@ class Keys {
         for ($s = $this->stringCount - 1; $s >= 0; $s--) {
             $str = str_pad($this->tuning[$s], $tuningLength, " ", STR_PAD_LEFT);
 
+            $color = 'bold_gray';
+
             if ($s == $this->selectedString) {
-                 $ret .= Colors::fg_color('white', $str);
-            } else {
-                $ret .= $str;
+                 $color = Config::$colorSelectedString;
             }
+
+            $ret .= Colors::fg_color($color, $str);
             
             if ($startX === 0) {
                 $ret .= ":";
@@ -709,7 +757,7 @@ class Keys {
 
                 // if this is our note, highlight it
                 if ($x == $this->selectedSlot && $s == $this->selectedString) {
-                    $color = 'white';
+                    $color = Config::$colorSelectedSlot;
                 }
 
                 if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
