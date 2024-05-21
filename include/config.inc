@@ -15,7 +15,12 @@ class Config {
     // how far to move left or right with shift+arrow
     public static $shiftWidth = 10;
     
-    public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G');
+    public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
+    /*
+    'A'
+    'A', 'B', 'C#', 'D', 'E', 'F#', 'G#'
+    1, 3m, 4, 5, 7b
+    */
     public static $empty = '';
 
     public static $modeNone = "";

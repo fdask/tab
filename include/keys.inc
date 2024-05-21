@@ -487,7 +487,11 @@ class Keys {
                         $useX--;
                     }
 
-                    $newStrings[$str][$useX] = $this->strings[$str][$x];
+                    if (isset($this->strings[$str][$x]) && $this->strings[$str][$x] != Config::$empty) {
+                        $newStrings[$str][$useX] = $this->strings[$str][$x];
+                    } else {
+                        $newStrings[$str][$useX] = Config::$empty;
+                    }
 
                     if (isset($this->betweenSlots[$str][$x])) {
                         $newBetweens[$str][$useX] = $this->betweenSlots[$str][$x];
@@ -718,9 +722,16 @@ class Keys {
     public function __toString() {
         $ret = "\n";
         $ret .= "key: " . $this->key . "\n";
-        $ret .= "note: " . $this->getNote() . "\n";
-        //$ret .= "slot " . $this->selectedSlot . "/" . $this->maxSlots . "\n";
+        $ret .= "note: ";
+        
+        if (isset($this->selectedString) && isset($this->selectedSlot) && isset($this->strings[$this->selectedString][$this->selectedSlot])) {
+            if ($this->strings[$this->selectedString][$this->selectedSlot] != Config::$empty) {
+                $ret .= $this->getNote();
+            } 
+        }
 
+        $ret .= "\n";
+            
         $startX = (($this->selectedSlot - $this->displaySlots) > 0) ? ($this->selectedSlot - $this->displaySlots) : 0;
         $tuningLength = $this->getTuningLength();
 
