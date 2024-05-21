@@ -470,6 +470,10 @@ class Keys {
     }
 
     public function nukeSlot($slot) {
+        if ($this->maxSlots == 1) {
+            return false;
+        }
+        
         $newStrings = array();
         $newBetweens = array();
 
