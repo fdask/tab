@@ -411,33 +411,15 @@ class Keys {
                         break;    
                     case Config::keypressSpaceBar():
                         // clears the value on the slot
-                        if (isset($this->strings[$this->selectedString][$this->selectedSlot])) {
-                            $val = $this->strings[$this->selectedString][$this->selectedSlot];
-                        } else {
-                            $val = Config::$empty;
-                        }
-
-                        if ($val != Config::$empty) {
-                            // delete the value on the slot (and any gapChar)
-                            $this->strings[$this->selectedString][$this->selectedSlot] = Config::$empty;
-
-                            if (($this->selectedSlot - 1) >= 0) {
-                                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$empty;
-                            }
-                        }
-
+                        $this->nukeVal($this->selectedString, $this->selectedSlot);
+                        
                         break;
                     case Config::keypressDelete():
                         // clears the value, or the column if no value present
                         $val = $this->strings[$this->selectedString][$this->selectedSlot];
 
                         if ($val != Config::$empty) {
-                            // delete the value on the slot (and any gapChar)
-                            $this->strings[$this->selectedString][$this->selectedSlot] = Config::$empty;
-
-                            if (($this->selectedSlot - 1) >= 0) {
-                                $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$empty;
-                            }
+                            $this->nukeVal($this->selectedString, $this->selectedSlot);
                         } else {
                             // delete the entire slot!
                             $this->nukeSlot($this->selectedSlot);
@@ -469,11 +451,24 @@ class Keys {
         $this->gameOver();
     }
 
+    public function nukeVal($string, $slot) {
+        // delete the value on the slot (and any gapChar)
+        $this->strings[$string][$slot] = Config::$empty;
+
+        // delete the between slot before
+        if (($slot - 1) >= 0) {
+            $this->betweenSlots[$this->selectedString][$this->selectedSlot - 1] = Config::$empty;
+        }
+            
+        // delete the slot after
+        $this->betweenSlots[$string][$slot] = Config::$empty;
+    }
+
     public function nukeSlot($slot) {
         if ($this->maxSlots == 1) {
             return false;
         }
-        
+
         $newStrings = array();
         $newBetweens = array();
 
@@ -481,6 +476,15 @@ class Keys {
             if (!isset($newStrings[$str])) {
                 $newStrings[$str] = array();
                 $newBetweens[$str] = array();
+            }
+
+            // delete the betweens before and after the nukedSlot
+            if (isset($this->betweenSlots[$str][$slot + 1])) {
+                $this->betweenSlots[$str][$slot + 1] = Config::$empty;
+            }
+
+            if (isset($this->betweenSlots[$str][$slot])) {
+                $this->betweenSlots[$str][$slot] = Config::$empty;
             }
 
             for ($x = 0; $x < $this->maxSlots; $x++) {
@@ -491,12 +495,14 @@ class Keys {
                         $useX--;
                     }
 
+                    // if we have a value, add it to the new strings array
                     if (isset($this->strings[$str][$x]) && $this->strings[$str][$x] != Config::$empty) {
                         $newStrings[$str][$useX] = $this->strings[$str][$x];
                     } else {
                         $newStrings[$str][$useX] = Config::$empty;
                     }
 
+                    // if we have a between slot (ahead), move it to new array
                     if (isset($this->betweenSlots[$str][$x])) {
                         $newBetweens[$str][$useX] = $this->betweenSlots[$str][$x];
                     } else {
@@ -764,10 +770,11 @@ class Keys {
                 // get the given divider character (default -)
                 $divider = "-";
 
-                if (isset($this->betweenSlots[$s][$x]) && !empty($this->betweenSlots[$s][$x])) {
+                if (isset($this->betweenSlots[$s][$x]) && $this->betweenSlots[$s][$x] != Config::$empty) {
                     $divider = $this->betweenSlots[$s][$x];
                 } 
                 
+                // default color
                 $color = 'bold_gray';
 
                 // if this is our note, highlight it
@@ -777,6 +784,7 @@ class Keys {
 
                 if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
                     $ret .= Colors::fg_color($color, str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_RIGHT));
+                    echo "Colsize: $colSize, divider: '$divider'\n";
                 } else {
                     $ret .= Colors::fg_color($color, str_pad("", $colSize, $divider, STR_PAD_RIGHT));
                 }
