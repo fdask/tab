@@ -163,7 +163,7 @@ class Tab {
                             $gapChar = $chunk[$string][$x + 2];
 
                             if ($gapChar != "" && $gapChar != "-") {
-                                $betweenSlots[$string][$slotCount] = $gapChar;
+                                $betweenSlots[$string][$this->slotCount] = $gapChar;
                             }
                         }
                     }

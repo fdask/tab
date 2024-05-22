@@ -138,6 +138,75 @@ class Keys {
                 }
 
                 $redraw = true;
+            } else if ($this->mode == Config::$modeKey) {
+                $redraw = true;
+
+                switch ($c) {
+                    case 'A':
+                    case 'a':
+                    case 'B':
+                    case 'b':
+                    case 'C':
+                    case 'c':
+                    case 'D':
+                    case 'd':
+                    case 'E':
+                    case 'e':
+                    case 'F':
+                    case 'f':
+                    case 'G':
+                    case 'g':
+                        if (strlen($this->buffer) == 0) {
+                            $this->buffer = strtoupper($c);
+                        } else {
+                            $redraw = false;
+                        }
+
+                        break;
+                    case 'b':
+                    case '#':
+                        if (strlen($this->buffer) == 1) {
+                            $this->key = $this->buffer . $c;
+                        } else {
+                            $redraw = false;
+                        }
+                    
+                        break;
+                    case 'k':
+                        $this->mode = Config::$modeNone;
+                        $this->buffer = "";
+
+                        break;
+                    case 'q':
+                        $this->gameOver();
+
+                        break;
+                    case Config::keypressEnter():
+                        $this->key = $this->buffer;
+                        $this->mode = Config::$modeNone;
+                        $this->buffer = "";
+
+                        break;
+                    case Config::keypressEscape():
+                        // back out of whatever mode we are in
+                        $this->mode = Config::$modeNone;
+                        $this->buffer = "";
+                        
+                        break;
+                    case Config::keypressBackspace():
+                        // delete the last char from the buffer
+                        $count = strlen($this->buffer);
+
+                        if ($count >= 1) {
+                            $this->buffer = substr($this->buffer, 0, $count - 1);
+                        } else {
+                            $redraw = false;
+                        }
+
+                        break;
+                    default:
+                        // unhandled keypress
+                }
             } else if ($this->mode == Config::$modeTuning) {
                 // tuning mode
                 $bufLen = strlen($this->buffer);
@@ -206,6 +275,7 @@ class Keys {
                         break;
                     case 't':
                     case Config::keypressEscape():
+                        // back out of whatever mode we are in
                         $this->mode = Config::$modeNone;
                         $this->buffer = "";
                     
@@ -362,6 +432,11 @@ class Keys {
                         }
 
                         break;
+                    case 'k':
+                        // set the key
+                        $this->mode = Config::$modeKey;
+
+                        break;
                     case 'l':
                         // load a file
                         $filename = readline("filename? ");
@@ -416,7 +491,11 @@ class Keys {
                         break;
                     case Config::keypressDelete():
                         // clears the value, or the column if no value present
-                        $val = $this->strings[$this->selectedString][$this->selectedSlot];
+                        if (isset($this->strings[$this->selectedString][$this->selectedSlot])) {
+                            $val = $this->strings[$this->selectedString][$this->selectedSlot];
+                        } else {
+                            $val = Config::$empty;
+                        }
 
                         if ($val != Config::$empty) {
                             $this->nukeVal($this->selectedString, $this->selectedSlot);
@@ -603,9 +682,7 @@ class Keys {
                 $maxWidth = $range[2];
             }
         }
-
-        print_r($dividedRanges);
-        
+      
         foreach ($dividedRanges as $range) {
             $start = $range[0];
             $stop = $range[1];
@@ -637,7 +714,7 @@ class Keys {
                         $val = $this->strings[$s][$x];
                     }
                     
-                    $ret .= str_pad($val, $colSize, $divider, STR_PAD_LEFT);
+                    $ret .= str_pad($val, $colSize, $divider, STR_PAD_RIGHT);
                     $ret .= $divider;
 
                     $width += $colSize + 1;
@@ -784,7 +861,6 @@ class Keys {
 
                 if (isset($this->strings[$s][$x]) && $this->strings[$s][$x] !== Config::$empty) {
                     $ret .= Colors::fg_color($color, str_pad($this->strings[$s][$x], $colSize, $divider, STR_PAD_RIGHT));
-                    echo "Colsize: $colSize, divider: '$divider'\n";
                 } else {
                     $ret .= Colors::fg_color($color, str_pad("", $colSize, $divider, STR_PAD_RIGHT));
                 }
@@ -822,6 +898,10 @@ class Keys {
                 break;
             case Config::$modeClearing:
                 $ret .= "clear? y/n ";
+
+                break;
+            case Config::$modeKey:
+                $ret .= "key";
 
                 break;
         }

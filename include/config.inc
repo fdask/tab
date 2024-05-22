@@ -30,6 +30,7 @@ class Config {
     public static $modeTuning = "TUNING";
     public static $modeClearing = "CLEARING";
     public static $modeHammerChar = "^";
+    public static $modeKey = "KEY";
     public static $modeSlideCharUp = "/";
     public static $modeSlideCharDown = "\\";
     public static $colorSelectedString = "purple";
