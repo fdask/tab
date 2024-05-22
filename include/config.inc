@@ -15,6 +15,9 @@ class Config {
     // how far to move left or right with shift+arrow
     public static $shiftWidth = 10;
     
+    // how many characters per line in printed output
+    public static $printWidth = 20;
+
     public static $keyArray = array('Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G');
     /*
     'A'
@@ -29,6 +32,7 @@ class Config {
     public static $modeBend = "BEND";
     public static $modeTuning = "TUNING";
     public static $modeClearing = "CLEARING";
+    public static $modePrint = "PRINT";
     public static $modeHammerChar = "^";
     public static $modeKey = "KEY";
     public static $modeSlideCharUp = "/";

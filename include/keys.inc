@@ -207,6 +207,38 @@ class Keys {
                     default:
                         // unhandled keypress
                 }
+            } else if ($this->mode == Config::$modePrint) {
+                $redraw = true;
+
+                // print mode.
+                switch ($c) {
+                    case Config::keypressEscape():
+                        // back out of whatever mode we are in
+                        $this->mode = Config::$modeNone;
+                        $this->buffer = "";
+                        
+                        break;
+                    case Config::keypressBackspace():
+                        $count = strlen($this->buffer);
+
+                        if ($count >= 1) {
+                            $this->buffer = substr($this->buffer, 0, $count - 1);
+                        } else {
+                            $redraw = false;
+                        }
+
+                        break;
+                    case Config::keypressEnter():
+                        if (strlen($this->buffer) > 0) {
+                            $this->print($this->buffer);
+                            $this->mode = Config::$modeNone;
+                            $this->buffer = "";
+                        }
+
+                        break;
+                    default:
+                        $this->buffer .= $c;
+                }
             } else if ($this->mode == Config::$modeTuning) {
                 // tuning mode
                 $bufLen = strlen($this->buffer);
@@ -455,11 +487,9 @@ class Keys {
 
                         break;
                     case 'p':
-                        // print!
-                        $this->print("out.txt");
-
-                        $redraw = false;
-
+                        // print mode
+                        $this->mode = Config::$modePrint;
+                        
                         break;
                     case 'q':
                         // quit
@@ -668,8 +698,12 @@ class Keys {
         return $ret;
     }
 
-    public function print($filename, $lineWidth = 20) {
+    public function print($filename, $lineWidth = null) {
         $ret = "";
+
+        if (is_null($lineWidth)) {
+            $lineWidth = Config::$printWidth;
+        }
 
         // in cases where we exceed the line length, we split into staffs
         $dividedRanges = $this->getDividedRanges($lineWidth);
@@ -902,6 +936,10 @@ class Keys {
                 break;
             case Config::$modeKey:
                 $ret .= "key";
+
+                break;
+            case Config::$modePrint:
+                $ret .= "filename";
 
                 break;
         }
