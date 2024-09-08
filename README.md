@@ -39,6 +39,8 @@ to be set in scientific notation.  <note><number> [A-G][#b]?[1-8]
 * 'z': Debug dump (to screen)
 * 'd': Debug dump (to file)
 
+* 'q': Quit
+
 # Config
 In include/config.inc, there are several configurable parameters you may want to change.
 
