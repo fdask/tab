@@ -1,7 +1,7 @@
 A tool for making your own simple tabs.
 
-# Run
-./keys.php
+# Running
+Run `keys.php`.
 
 # Instructions
 Ever seen a guitar tab before?  It's just numbers on lines showing which frets to press
@@ -17,31 +17,32 @@ still figuring out the best character for bend
 Tuning, shown at the start of the tab to the left of the |'s, is meant
 to be set in scientific notation.  <note><number> [A-G][#b]?[1-8]
 
-# Keys
-* 0-9 enter values
-* Arrow keys navigate the cursor
-* Shift left arrow or shift right arrow skip the cursor in that direction
-* Home key goes to start of measure
-* End key goes to end of tab
-* Delete clears the selected value, or column if there is no value
-* Spacebar clears the selected value
-* 'i' key inserts a blank column at current cursor location
-* 'v' key inserts/deletes a vertical column at current cursor location
-
-* 'h': Hammer on mode
-* 's': Slide mode
-* 'b': Bend mode
-
-* 't': Set tuning on active string
-* 'c': Clear your work
-
-* 'l': Load a file
-* 'p': Write to out.txt
-* 'x': Don't play!
-* 'z': Debug dump (to screen)
-* 'd': Debug dump (to file)
-
-* 'q': Quit
+# Control
+| key | desc |
+| --- | --- |
+|`0-9`|enter values|
+|`x`|add an 'X' (indicates not to play)|
+|`i`|inserts a blank column at current cursor location|
+|`v`|inserts/deletes a vertical column at current cursor location|
+|`Delete`|clears the selected value, or column if there is no value|
+|`Spacebar`|clears the selected value.|
+|modifiers||
+|`h`|Hammer on mode|
+|`s`|Slide mode|
+|`b`|Bend mode|
+| navigation ||
+|`←↑→↓`|arrow keys navigate the cursor|
+|`shift + ←` or `shift + →`|skip the cursor in that direction|
+|`Home`|move cursor to start of measure|
+|`End`|move cursor to end of tab|
+| others ||
+|`t`|Set tuning on active string|
+|`c`|Clear your work|
+|`l`|Load a file|
+|`p`|Write to out.txt|
+|`z`|Debug dump (to screen)|
+|`d`|Debug dump (to file)|
+|`q`|Quit|
 
 # Config
 In include/config.inc, there are several configurable parameters you may want to change.
