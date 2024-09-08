@@ -465,6 +465,11 @@ class Keys {
                         }
 
                         break;
+                    case 'i':
+                        // insert a blank column at present cursor position
+                        $this->insertBlankColumn($this->selectedSlot);
+
+                        break;
                     case 'k':
                         // set the key
                         $this->mode = Config::$modeKey;
@@ -559,6 +564,77 @@ class Keys {
         }
 
         $this->gameOver();
+    }
+
+    public function insertBlankColumn($slot) {
+        // split the string arrays into two parts.
+        // before the split, and after the split.
+        // data in the present column are included in the after split
+        $beforeSlots = array();
+
+        for ($string = 0; $string < Config::$stringCount; $string++) {
+            $beforeSlots[$string] = array();
+
+            for ($x = 0; $x < $slot; $x++) {
+                if (isset($this->strings[$string][$x])) {
+                    $beforeSlots[$string][$x] = $this->strings[$string][$x];
+                } else {
+                    $beforeSlots[$string][$x] = Config::$empty;
+                }
+            }
+        }
+ 
+        $afterSlots = array();
+
+        for ($string = 0; $string < Config::$stringCount; $string++) {
+            $afterSlots[$string] = array();
+
+            for ($x = $slot; $x < count($this->strings[$string]); $x++) {
+                if (isset($this->strings[$string][$x])) {
+                    $afterSlots[$string][$x] = $this->strings[$string][$x];
+                } else {
+                    $afterSlots[$string][$x] = Config::$empty;
+                }
+            }
+        }
+
+        for ($string = 0; $string < Config::$stringCount; $string++) {
+            $this->strings[$string] = array_merge($beforeSlots[$string], array(Config::$empty), $afterSlots[$string]);
+        }
+
+        // now we do the same with the between slots, only excluding any left bordering us
+        $betweenLeft = array();
+        $betweenRight = array();
+
+        for ($string = 0; $string < Config::$stringCount; $string++) {
+            $betweenLeft[$string] = array();
+
+            for ($x = 0; $x < $slot - 1; $x++) {
+                if (isset($this->betweenSlots[$string][$x])) {
+                    $betweenLeft[$string][$x] = $this->betweenSlots[$string][$x];
+                } else {
+                    $betweenLeft[$string][$x] = Config::$empty;
+                }
+            }
+
+            $betweenLeft[$string][$slot] = Config::$empty;
+        }
+
+        for ($string = 0; $string < Config::$stringCount; $string++) {
+            $betweenRight[$string] = array();
+
+            for ($x = $slot; $x < count($this->betweenSlots[$string]); $x++) {
+                if (isset($this->betweenSlots[$string][$x])) {
+                    $betweenRight[$string][$x] = $this->betweenSlots[$string][$x];
+                } else {
+                    $betweenRight[$string][$x] = Config::$empty;
+                }
+            }
+        }
+
+        for ($string = 0; $string < Config::$stringCount; $string++) {
+            $this->betweenSlots[$string] = array_merge($betweenLeft[$string], array(Config::$empty), $betweenRight[$string]);
+        }
     }
 
     public function nukeVal($string, $slot) {
