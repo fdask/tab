@@ -25,6 +25,7 @@ to be set in scientific notation.  <note><number> [A-G][#b]?[1-8]
 * End key goes to end of tab
 * Delete clears the selected value, or column if there is no value
 * Spacebar clears the selected value
+* 'i' key inserts a blank column at current cursor location
 
 * 'h': Hammer on mode
 * 's': Slide mode
