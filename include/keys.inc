@@ -514,6 +514,16 @@ class Keys {
                         $this->mode = ($this->mode == Config::$modeTuning) ? Config::$modeNone : Config::$modeTuning;
 
                         break;
+                    case 'v':
+                        // if we already have a vert line on the cursor, remove it
+                        if ($this->strings[$this->selectedString][$this->selectedSlot] == Config::$vertLine) {
+                            $this->removeVert($this->selectedSlot);
+                        } else { 
+                            // add a vertical line at the current cursor position
+                            $this->addVert($this->selectedSlot);
+                        }
+
+                        break;
                     case 'z':
                         // DEBUG
                         print_r($this->strings);
@@ -566,13 +576,29 @@ class Keys {
         $this->gameOver();
     }
 
+    public function addVert($slot) {
+        $this->insertBlankColumn($slot);
+
+        for ($string = 0; $string < $this->stringCount; $string++) {
+            $this->strings[$string][$slot] = Config::$vertLine;
+        }
+    }
+
+    public function removeVert($slot) {
+        $this->nukeSlot($slot);
+    }
+
     public function insertBlankColumn($slot) {
         // split the string arrays into two parts.
         // before the split, and after the split.
         // data in the present column are included in the after split
+        
+        // increase maxSlots
+        $this->maxSlots++;
+
         $beforeSlots = array();
 
-        for ($string = 0; $string < Config::$stringCount; $string++) {
+        for ($string = 0; $string < $this->stringCount; $string++) {
             $beforeSlots[$string] = array();
 
             for ($x = 0; $x < $slot; $x++) {
@@ -586,7 +612,7 @@ class Keys {
  
         $afterSlots = array();
 
-        for ($string = 0; $string < Config::$stringCount; $string++) {
+        for ($string = 0; $string < $this->stringCount; $string++) {
             $afterSlots[$string] = array();
 
             for ($x = $slot; $x < count($this->strings[$string]); $x++) {
@@ -598,7 +624,7 @@ class Keys {
             }
         }
 
-        for ($string = 0; $string < Config::$stringCount; $string++) {
+        for ($string = 0; $string < $this->stringCount; $string++) {
             $this->strings[$string] = array_merge($beforeSlots[$string], array(Config::$empty), $afterSlots[$string]);
         }
 
@@ -606,7 +632,7 @@ class Keys {
         $betweenLeft = array();
         $betweenRight = array();
 
-        for ($string = 0; $string < Config::$stringCount; $string++) {
+        for ($string = 0; $string < $this->stringCount; $string++) {
             $betweenLeft[$string] = array();
 
             for ($x = 0; $x < $slot - 1; $x++) {
@@ -620,7 +646,7 @@ class Keys {
             $betweenLeft[$string][$slot] = Config::$empty;
         }
 
-        for ($string = 0; $string < Config::$stringCount; $string++) {
+        for ($string = 0; $string < $this->stringCount; $string++) {
             $betweenRight[$string] = array();
 
             for ($x = $slot; $x < count($this->betweenSlots[$string]); $x++) {
@@ -632,9 +658,12 @@ class Keys {
             }
         }
 
-        for ($string = 0; $string < Config::$stringCount; $string++) {
+        for ($string = 0; $string < $this->stringCount; $string++) {
             $this->betweenSlots[$string] = array_merge($betweenLeft[$string], array(Config::$empty), $betweenRight[$string]);
         }
+
+        // move the cursor one the right
+        $this->selectedSlot++;
     }
 
     public function nukeVal($string, $slot) {
@@ -707,6 +736,9 @@ class Keys {
         }
     }
 
+    /**
+     * quit!
+     */
     public function gameOver() {
         system("stty " . $this->term);
 
@@ -775,6 +807,9 @@ class Keys {
         return $ret;
     }
 
+    /**
+     * print out the current tab to a file
+     */
     public function print($filename, $lineWidth = null) {
         $ret = "";
 
@@ -846,6 +881,9 @@ class Keys {
         file_put_contents($filename, $ret);
     }
 
+    /**
+     * a valid note is either an 'x' (for don't play), or a number from 0-24.
+     */
     public function validateNote($note) {
         // x is valid
         if ($note == "x") {
@@ -862,6 +900,9 @@ class Keys {
         return false;
     }
 
+    /**
+     * figure out if a numbers column is one, or two wide.
+     */
     public function getColSize($col) {
         $size = 1;
 
@@ -874,14 +915,20 @@ class Keys {
         return $size;
     }
 
+    /**
+     * add the given note to the currently selected string/slot
+     */
     public function addNote($note) {
-        // add the note
-        for ($x = 0; $x < $this->stringCount; $x++) {
-            if ($x == $this->selectedString) {
-                $this->strings[$x][$this->selectedSlot] = $note;
-            } 
+        // if the current slot is filled with vertical bars, remove them!
+        if (isset($this->strings[$this->selectedString][$this->selectedSlot]) && $this->strings[$this->selectedString][$this->selectedSlot] == Config::$vertLine) {
+            for ($x = 0; $x < $this->stringCount; $x++) {
+                $this->strings[$x][$this->selectedSlot] = Config::$empty;
+            }
         }
-
+        
+        // add the note
+        $this->strings[$this->selectedString][$this->selectedSlot] = $note;
+        
         // add the modifier 
         if ($this->selectedSlot >= 1) {
             if ($this->mode == Config::$modeHammer) {
