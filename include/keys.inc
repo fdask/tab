@@ -55,24 +55,24 @@ class Keys {
         }
     }
 
-    public function addInterval($note, $interval) {
-        $count = 0;
-
+    /**
+     * given a current note of $node, add $interval steps
+     */
+    public function addInterval($note, $interval) { 
+        // position of the current note in the keyArray
         $letterPos = array_search($note, Config::$keyArray);
 
         if ($letterPos === false) {
             return false;
         }
       
-        do {
+        for ($x = 0; $x < $interval; $x++) {
+            $letterPos++;
+
             if ($letterPos >= count(Config::$keyArray) - 1) {
                 $letterPos = 0;
-            } else {
-                $letterPos++;
             }
-
-            $count++;
-        } while ($count < $interval);
+        } 
 
         return Config::$keyArray[$letterPos];
     }
@@ -86,6 +86,7 @@ class Keys {
             // we have a good integer.  get tuning
             $tuning = $this->tuning[$this->selectedString];
 
+            // if no tuning is set, we can't get a key
             if ($this->tuning != "XX") {
                 // add n to start, and convert back to scientific
                 if (preg_match("@([A-G][#b]?)[0-9]@", $tuning, $matches)) {
