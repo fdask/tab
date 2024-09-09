@@ -514,6 +514,23 @@ class Keys {
                         $this->mode = ($this->mode == Config::$modeTuning) ? Config::$modeNone : Config::$modeTuning;
 
                         break;
+                    case 'T':
+                        // set standard tuning
+                        if ($this->stringCount == 4) {
+                            $this->tuning[0] = "E1";
+                            $this->tuning[1] = "A1";
+                            $this->tuning[2] = "D2";
+                            $this->tuning[3] = "G2";
+                        } else if ($this->stringCount == 6) {
+                            $this->tuning[0] = "E2";
+                            $this->tuning[1] = "A2";
+                            $this->tuning[2] = "D3";
+                            $this->tuning[3] = "G3";
+                            $this->tuning[4] = "B3";
+                            $this->tuning[5] = "E4";
+                        }
+
+                        break;
                     case 'v':
                         // if we already have a vert line on the cursor, remove it
                         if ($this->strings[$this->selectedString][$this->selectedSlot] == Config::$vertLine) {
