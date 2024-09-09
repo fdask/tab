@@ -37,6 +37,7 @@ to be set in scientific notation.  <note><number> [A-G][#b]?[1-8]
 |`End`|move cursor to end of tab|
 | others ||
 |`t`|Set tuning on active string|
+|`T`|Set standard tuning (4 string `E1 A1 D2 G2`), (6 string `E2 A2 D3 G3 B3 E4`)|
 |`c`|Clear your work|
 |`l`|Load a file|
 |`p`|Write to out.txt|
